@@ -66,7 +66,20 @@ install_packages() {
     apt)
       export DEBIAN_FRONTEND=noninteractive
       apt-get update
-      apt-get install -y dante-server ufw curl
+      if apt-get install -y dante-server ufw curl; then
+        :
+      else
+        # dante-server was dropped from the Debian trixie archive (bug #1067709);
+        # fall back to the current deb from the Debian pool.
+        apt-get install -y ufw curl
+        DEB_ARCH="$(dpkg --print-architecture)"
+        DEB_NAME="$(curl -fsSL https://deb.debian.org/debian/pool/main/d/dante/ \
+          | grep -oE 'dante-server_[^"]+_'"${DEB_ARCH}"'\.deb' | sort -V | tail -n 1)"
+        DEB_FILE="$(mktemp /tmp/dante-server_XXXXXX.deb)"
+        curl -fsSL -o "${DEB_FILE}" "https://deb.debian.org/debian/pool/main/d/dante/${DEB_NAME}"
+        apt-get install -y "${DEB_FILE}"
+        rm -f "${DEB_FILE}"
+      fi
       ;;
     dnf)
       dnf install -y epel-release
