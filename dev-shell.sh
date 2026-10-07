@@ -444,7 +444,13 @@ node_arch() {
 latest_node_lts_version() {
   local version
 
-  version="$(curl -fsSL "$NODE_DIST_INDEX_URL" | sed -n 's/.*"version":"\(v[0-9][^"]*\)".*"lts":\("[^"]*"\|true\).*/\1/p' | head -n 1)"
+  version="$(curl -fsSL "$NODE_DIST_INDEX_URL" | awk '
+    {
+      if (match($0, /"version":"v[0-9][^"]*"/) && $0 !~ /"lts": *false/) {
+        print substr($0, RSTART + 11, RLENGTH - 12)
+        exit
+      }
+    }')"
   [ -n "$version" ] || die "Unable to determine latest Node.js LTS version"
   printf '%s\n' "$version"
 }
