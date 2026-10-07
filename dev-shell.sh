@@ -42,6 +42,7 @@ NPM_PACKAGES=(
   @earendil-works/pi-coding-agent
 )
 
+SHELL_NAME=""
 SHELL_RC_FILE=""
 SHELL_PROFILE_FILE=""
 
@@ -341,13 +342,21 @@ validate_privilege_mode() {
 }
 
 resolve_shell_files() {
-  if [ "$OS_TYPE" = "macos" ]; then
-    SHELL_RC_FILE="$HOME/.zshrc"
-    SHELL_PROFILE_FILE="$HOME/.zprofile"
-  else
-    SHELL_RC_FILE="$HOME/.bashrc"
-    SHELL_PROFILE_FILE="$HOME/.profile"
-  fi
+  case "$OS_TYPE" in
+    macos)
+      SHELL_NAME="zsh"
+      SHELL_RC_FILE="$HOME/.zshrc"
+      SHELL_PROFILE_FILE="$HOME/.zprofile"
+      ;;
+    linux)
+      SHELL_NAME="bash"
+      SHELL_RC_FILE="$HOME/.bashrc"
+      SHELL_PROFILE_FILE="$HOME/.profile"
+      ;;
+    *)
+      die "Unsupported OS for shell setup: $OS_TYPE"
+      ;;
+  esac
 }
 
 ensure_homebrew() {
@@ -554,23 +563,23 @@ npm_global_bin_dir() {
 }
 
 bashrc_is_managed() {
-  [ -f "$HOME/.bashrc" ] && grep -q '^# managed by dev-shell$' "$HOME/.bashrc" 2>/dev/null
+  [ -f "$SHELL_RC_FILE" ] && grep -q '^# managed by dev-shell$' "$SHELL_RC_FILE" 2>/dev/null
 }
 
 write_bashrc() {
-  [ "$OS_TYPE" = "linux" ] || return 0
+  [ "$SHELL_NAME" = "bash" ] || return 0
 
   if bashrc_is_managed; then
-    log "Skipping ~/.bashrc rewrite (already managed)"
+    log "Skipping $SHELL_RC_FILE rewrite (already managed)"
     return 0
   fi
 
-  backup_path_if_exists BACKUP_BASHRC "$HOME/.bashrc"
+  backup_path_if_exists BACKUP_BASHRC "$SHELL_RC_FILE"
 
   MANAGED_BASHRC=1
   save_state
 
-  cat > "$HOME/.bashrc" <<'EOF'
+  cat > "$SHELL_RC_FILE" <<'EOF'
 # managed by dev-shell
 # ~/.bashrc
 
@@ -706,23 +715,23 @@ EOF
 }
 
 zshrc_is_managed() {
-  [ -f "$HOME/.zshrc" ] && grep -q '^# managed by dev-shell$' "$HOME/.zshrc" 2>/dev/null
+  [ -f "$SHELL_RC_FILE" ] && grep -q '^# managed by dev-shell$' "$SHELL_RC_FILE" 2>/dev/null
 }
 
 write_zshrc() {
-  [ "$OS_TYPE" = "macos" ] || return 0
+  [ "$SHELL_NAME" = "zsh" ] || return 0
 
   if zshrc_is_managed; then
-    log "Skipping ~/.zshrc rewrite (already managed)"
+    log "Skipping $SHELL_RC_FILE rewrite (already managed)"
     return 0
   fi
 
-  backup_path_if_exists BACKUP_ZSHRC "$HOME/.zshrc"
+  backup_path_if_exists BACKUP_ZSHRC "$SHELL_RC_FILE"
 
   MANAGED_ZSHRC=1
   save_state
 
-  cat > "$HOME/.zshrc" <<'EOF'
+  cat > "$SHELL_RC_FILE" <<'EOF'
 # managed by dev-shell
 # ~/.zshrc
 
@@ -744,6 +753,13 @@ if [ -x /opt/homebrew/bin/brew ]; then
 elif [ -x /usr/local/bin/brew ]; then
   eval "$(/usr/local/bin/brew shellenv)"
 fi
+
+# --- Shell options and completion ---
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=10000
+SAVEHIST=10000
+setopt hist_ignore_dups hist_ignore_space share_history interactive_comments
+autoload -Uz compinit && compinit
 
 # --- Aliases ---
 if command -v rg >/dev/null 2>&1; then
@@ -848,26 +864,26 @@ EOF
 }
 
 profile_is_managed() {
-  [ -f "$HOME/.profile" ] && grep -q '^# managed by dev-shell$' "$HOME/.profile" 2>/dev/null
+  [ -f "$SHELL_PROFILE_FILE" ] && grep -q '^# managed by dev-shell$' "$SHELL_PROFILE_FILE" 2>/dev/null
 }
 
 write_profile() {
   local npm_bin
 
-  [ "$OS_TYPE" = "linux" ] || return 0
+  [ "$SHELL_NAME" = "bash" ] || return 0
 
   if profile_is_managed; then
-    log "Skipping ~/.profile rewrite (already managed)"
+    log "Skipping $SHELL_PROFILE_FILE rewrite (already managed)"
     return 0
   fi
 
-  backup_path_if_exists BACKUP_PROFILE "$HOME/.profile"
+  backup_path_if_exists BACKUP_PROFILE "$SHELL_PROFILE_FILE"
   npm_bin="$(npm_global_bin_dir)"
 
   MANAGED_PROFILE=1
   save_state
 
-  cat > "$HOME/.profile" <<EOF
+  cat > "$SHELL_PROFILE_FILE" <<EOF
 # managed by dev-shell
 # ~/.profile: executed by the command interpreter for login shells.
 
@@ -896,7 +912,7 @@ fi
 EOF
 
   if [ -n "$npm_bin" ]; then
-    cat >> "$HOME/.profile" <<EOF
+    cat >> "$SHELL_PROFILE_FILE" <<EOF
 
 if [ -d "$npm_bin" ] ; then
     PATH="$npm_bin:\$PATH"
@@ -908,26 +924,26 @@ EOF
 }
 
 zprofile_is_managed() {
-  [ -f "$HOME/.zprofile" ] && grep -q '^# managed by dev-shell$' "$HOME/.zprofile" 2>/dev/null
+  [ -f "$SHELL_PROFILE_FILE" ] && grep -q '^# managed by dev-shell$' "$SHELL_PROFILE_FILE" 2>/dev/null
 }
 
 write_zprofile() {
   local npm_bin
 
-  [ "$OS_TYPE" = "macos" ] || return 0
+  [ "$SHELL_NAME" = "zsh" ] || return 0
 
   if zprofile_is_managed; then
-    log "Skipping ~/.zprofile rewrite (already managed)"
+    log "Skipping $SHELL_PROFILE_FILE rewrite (already managed)"
     return 0
   fi
 
-  backup_path_if_exists BACKUP_ZPROFILE "$HOME/.zprofile"
+  backup_path_if_exists BACKUP_ZPROFILE "$SHELL_PROFILE_FILE"
   npm_bin="$(npm_global_bin_dir)"
 
   MANAGED_ZPROFILE=1
   save_state
 
-  cat > "$HOME/.zprofile" <<EOF
+  cat > "$SHELL_PROFILE_FILE" <<EOF
 # managed by dev-shell
 # ~/.zprofile: sourced by zsh for login shells.
 
@@ -951,13 +967,13 @@ path_prepend "\$HOME/.pi/bin"
 EOF
 
   if [ -n "$npm_bin" ]; then
-    cat >> "$HOME/.zprofile" <<EOF
+    cat >> "$SHELL_PROFILE_FILE" <<EOF
 
 path_prepend "$npm_bin"
 EOF
   fi
 
-  cat >> "$HOME/.zprofile" <<'EOF'
+  cat >> "$SHELL_PROFILE_FILE" <<'EOF'
 
 export PATH
 EOF
@@ -1315,6 +1331,13 @@ verify_install() {
       printf '  %-26s %s\n' "brew" "NOT FOUND"
       missing=1
     fi
+
+    if have_cmd zsh; then
+      printf '  %-26s %s\n' "zsh" "$(command -v zsh)"
+    else
+      printf '  %-26s %s\n' "zsh" "NOT FOUND"
+      missing=1
+    fi
   fi
 
   if have_cmd fd; then
@@ -1352,6 +1375,22 @@ verify_install() {
   [ "$missing" -eq 0 ] || die "One or more required commands are missing"
 }
 
+write_shell_rc() {
+  case "$SHELL_NAME" in
+    zsh) write_zshrc ;;
+    bash) write_bashrc ;;
+    *) die "Unsupported shell for rc file: $SHELL_NAME" ;;
+  esac
+}
+
+write_shell_profile() {
+  case "$SHELL_NAME" in
+    zsh) write_zprofile ;;
+    bash) write_profile ;;
+    *) die "Unsupported shell for profile file: $SHELL_NAME" ;;
+  esac
+}
+
 install_all() {
   local pkg
 
@@ -1375,10 +1414,8 @@ install_all() {
     done
   fi
 
-  write_bashrc
-  write_zshrc
-  write_profile
-  write_zprofile
+  write_shell_rc
+  write_shell_profile
   install_micro_lsp_plugin
   patch_micro_lsp_plugin
   configure_micro_settings

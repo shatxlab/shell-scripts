@@ -74,11 +74,20 @@ It:
 - installs a user-local Node.js runtime when `node`/`npm` are missing
 - installs `pi` (`@earendil-works/pi-coding-agent`) via npm when it is missing
 - installs global npm packages for the TypeScript LSP
-- writes managed versions of `~/.bashrc`, `~/.profile`, `~/.tmux.conf`, and the tmux status helper
+- configures the user's login shell: `bash` (`~/.bashrc`, `~/.profile`) on Linux and `zsh` (`~/.zshrc`, `~/.zprofile`) on macOS
+- writes managed versions of `~/.tmux.conf` and the tmux status helper
 - installs and patches the `micro` LSP plugin
 - tracks what it changed in `~/.local/state/shell-scripts/dev-shell.env`
 
 Every install step checks whether the target is already present and skips work when possible.
+
+The active shell is resolved from the OS (`zsh` on macOS, `bash` on Linux) and stored as `SHELL_NAME`, with the rc and profile paths derived from it. Only the files for the active shell are written, backed up, tracked, and restored on uninstall.
+
+### macOS notes
+
+- Homebrew is installed when missing and used for CLI tools (`ripgrep`, `fd`, `fzf`, `zoxide`, `micro`, `tmux`).
+- The generated `~/.zshrc` enables history sharing/completion (`compinit`) and configures the prompt, aliases, `zoxide`, and `fzf`-backed `mf` helper for `zsh`.
+- `tmux` is configured to use `/bin/zsh -l` as its default shell.
 
 ### Install
 
