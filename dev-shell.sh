@@ -3,7 +3,7 @@ set -euo pipefail
 
 LOG_PREFIX="[dev-shell-setup]"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
-TOOLS_NOTE="ripgrep fd fzf zoxide node pi micro tmux"
+TOOLS_NOTE="ripgrep fd fzf zoxide node pi micro tmux gh"
 OS_TYPE=""
 STATE_DIR="$HOME/.local/state/shell-scripts"
 STATE_FILE="$STATE_DIR/dev-shell.env"
@@ -21,6 +21,7 @@ BREW_FORMULAS=(
   zoxide
   micro
   tmux
+  gh
 )
 APT_PACKAGES=(
   ca-certificates
@@ -35,6 +36,7 @@ APT_PACKAGES=(
   zoxide
   micro
   tmux
+  gh
 )
 NPM_PACKAGES=(
   typescript
@@ -1315,7 +1317,7 @@ verify_install() {
   local cmd
   local node_path npm_path
   log "Verification"
-  for cmd in rg fzf zoxide micro tmux typescript-language-server tsc; do
+  for cmd in rg fzf zoxide micro tmux gh typescript-language-server tsc; do
     if have_cmd "$cmd"; then
       printf '  %-26s %s\n' "$cmd" "$(command -v "$cmd")"
     else

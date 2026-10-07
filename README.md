@@ -85,7 +85,7 @@ The active shell is resolved from the OS (`zsh` on macOS, `bash` on Linux) and s
 
 ### macOS notes
 
-- Homebrew is installed when missing and used for CLI tools (`ripgrep`, `fd`, `fzf`, `zoxide`, `micro`, `tmux`).
+- Homebrew is installed when missing and used for CLI tools (`ripgrep`, `fd`, `fzf`, `zoxide`, `micro`, `tmux`, `gh`).
 - The generated `~/.zshrc` enables history sharing/completion (`compinit`) and configures the prompt, aliases, `zoxide`, and `fzf`-backed `mf` helper for `zsh`.
 - `tmux` is configured to use `/bin/zsh -l` as its default shell.
 
