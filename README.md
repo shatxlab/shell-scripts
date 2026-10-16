@@ -75,7 +75,7 @@ It:
 - installs `pi` (`@earendil-works/pi-coding-agent`) via npm when it is missing
 - installs global npm packages for the TypeScript LSP
 - configures the user's login shell: `bash` (`~/.bashrc`, `~/.profile`) on Linux and `zsh` (`~/.zshrc`, `~/.zprofile`) on macOS
-- writes managed versions of `~/.tmux.conf` and the tmux status helper
+- writes managed versions of `~/.tmux.conf` (including a default layout for new sessions and windows) and the tmux status helper
 - installs and patches the `micro` LSP plugin
 - tracks what it changed in `~/.local/state/shell-scripts/dev-shell.env`
 

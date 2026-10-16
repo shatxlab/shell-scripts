@@ -1304,7 +1304,9 @@ set -g base-index 1
 setw -g pane-base-index 1
 set -g status-interval 15
 
-set -g status-left "#[bg=#c8a84b,fg=#222222,bold]  #{b:pane_current_path} #[bg=#222222,fg=#c8a84b,nobold]"
+# Git branch shown next to the pane path when the pane is inside a repo
+set -g @git_branch "#(git -C \"#{pane_current_path}\" symbolic-ref --quiet --short HEAD 2>/dev/null || git -C \"#{pane_current_path}\" rev-parse --short HEAD 2>/dev/null)"
+set -g status-left "#[bg=#c8a84b,fg=#222222,bold]  #{b:pane_current_path}#{?#{E:@git_branch}, #[fg=#6b5518]#{E:@git_branch},} #[bg=#222222,fg=#c8a84b,nobold]"
 set -g status-right "#[bg=#c8a84b,fg=#222222] %a %d %b #[bold]%H:%M %Z "
 
 setw -g window-status-format "#[fg=#7a6a3a]  #W  "
@@ -1313,6 +1315,13 @@ setw -g window-status-separator ""
 
 set -g message-style "bg=#2e2e2e,fg=#c8a84b,bold"
 set -g message-command-style "bg=#222222,fg=#b8a060"
+
+##### Default window layout #####
+
+# New sessions and windows get: two panes on top, full-width strip at the bottom.
+# Only applies to windows that still have a single pane.
+set-hook -g after-new-session 'if -F "#{==:#{window_panes},1}" "split-window -d -f -v -l 10 -c \"#{pane_current_path}\" ; split-window -d -h -p 51 -c \"#{pane_current_path}\""'
+set-hook -g after-new-window  'if -F "#{==:#{window_panes},1}" "split-window -d -f -v -l 10 -c \"#{pane_current_path}\" ; split-window -d -h -p 51 -c \"#{pane_current_path}\""'
 EOF
 
   log "Written $TMUX_CONF_FILE"
