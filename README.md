@@ -19,6 +19,7 @@ Provisioning scripts for user tooling and remote services.
 | `browser.sh` | Installs a remote browser stack behind Caddy + noVNC |
 | `setup-dante.sh` | Installs a Dante SOCKS5 proxy on a VPS |
 | `setup-mtproto.sh` | Installs a Telegram MTProto proxy on a VPS |
+| `vless.sh` | Sets up a VLESS + Reality (Xray) VPN with ad blocking on a fresh VPS, from your machine |
 
 
 ## `bootstrap-vps.sh`
@@ -209,3 +210,37 @@ Parameters:
 
 The script supports Debian/Ubuntu and RHEL-like distributions, opens all MTProto ports through `ufw` or `firewalld` when active, creates a systemd service, and prints the Telegram proxy link.
 
+## `vless.sh`
+
+`vless.sh` runs on your local machine and turns a fresh Debian/Ubuntu VPS into a VLESS + Reality VPN server, in one run.
+
+It:
+
+- asks for the server IP (or takes it as the first argument or `SERVER_IP`)
+- connects as `root`; type the root password when `ssh` asks (it is never stored or passed on the command line)
+- installs Xray with the official installer and generates a new client id, Reality keys and short id
+- writes the config: one VLESS + Reality inbound on `443` (cover site `dl.google.com`, `xtls-rprx-vision`), with a direct and a blackhole outbound and no routing rules
+- validates the config with `xray run -test` before restarting, and restores the old config if Xray does not come back
+- keeps a small VPS from running out of disk: journal capped at 30 MB, no apt caches or translations, weekly `apt-get clean`
+- prints a `vless://` link (and a QR code if `qrencode` is installed) for your client, and saves it to `~/.local/state/shell-scripts/vless-<ip>.env`
+
+```bash
+./vless.sh                        # asks for the IP
+./vless.sh 203.0.113.10 phone     # IP and the name shown in the client
+```
+
+Options (environment variables):
+
+- `VLESS_PORT`: listening port. Default: `443`.
+- `VLESS_NAME`: client name in the link. Default: `vless` (or the second argument).
+- `REALITY_TARGET`: the real site the server imitates. Default: `dl.google.com`.
+- `XRAY_VERSION`: install a specific Xray version, for example `26.3.27`. Default: latest.
+- `SERVER_PORT`: the server's SSH port. Default: `22`.
+- `SSH_KEY`: log in with this key instead of a password.
+- `REPLACE=1`: replace an existing Reality setup (new keys; the old config is kept as `config.json.bak-<time>`).
+- `DISK_HYGIENE=0`: skip the disk-space settings.
+
+Notes:
+
+- It refuses to run when the server has under 300 MB free, and does not enable a firewall; if `ufw` is already active it opens the VLESS port.
+- Running it again without `REPLACE=1` stops before changing anything on a server that already has a Reality setup.
