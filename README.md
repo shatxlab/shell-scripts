@@ -224,6 +224,16 @@ It:
 - keeps a small VPS from running out of disk: journal capped at 30 MB, no apt caches or translations, weekly `apt-get clean`
 - prints a `vless://` link (and a QR code if `qrencode` is installed) for your client, and saves it to `~/.local/state/shell-scripts/vless-<ip>.env`
 
+### Install
+
+Recommended install command:
+
+```bash
+wget -qO- https://raw.githubusercontent.com/shatxlab/shell-scripts/main/vless.sh | env SERVER_IP=203.0.113.10 VLESS_NAME=phone bash
+```
+
+Without `SERVER_IP` the script asks for the server IP. When run from a local checkout, the IP and name can also be passed as arguments:
+
 ```bash
 ./vless.sh                        # asks for the IP
 ./vless.sh 203.0.113.10 phone     # IP and the name shown in the client

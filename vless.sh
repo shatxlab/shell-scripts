@@ -40,8 +40,9 @@ ensure_requirements() {
   need_cmd grep
 
   if [ -z "$SERVER_IP" ]; then
-    [ -t 0 ] || die "Set SERVER_IP or pass the server address as the first argument"
-    read -r -p "Server IP: " SERVER_IP
+    [ -r /dev/tty ] || die "Set SERVER_IP or pass the server address as the first argument"
+    printf 'Server IP: ' > /dev/tty
+    IFS= read -r SERVER_IP < /dev/tty
   fi
   [ -n "$SERVER_IP" ] || die "Server IP is required"
   [[ "$SERVER_IP" =~ ^[A-Za-z0-9.:-]+$ ]] || die "Invalid server address: $SERVER_IP"
